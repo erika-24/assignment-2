@@ -132,6 +132,9 @@ latitude | longitude  | intensity
 40.6900  | -74.0200   | 0.5
 ```
 
+### 5. Fun feature
+You can now hover over any line to instantly see its name and click it for a popup.
+
 ## Available Icon Types
 
 Common Folium/Font Awesome icons:

@@ -138,6 +138,39 @@ def add_circles(map_obj, df_circles):
             ).add_to(map_obj)
 
 
+def add_lines(map_obj, df_lines):
+    # Add lines to map from xlsx tabs
+    if df_lines is None or df_lines.empty:
+        return
+
+    for _, row in df_lines.iterrows():
+        coord_str = row.get('coordinates')
+        if pd.isna(coord_str) or coord_str is None:
+            continue    # skip if empty row
+
+        coords = json.loads(coord_str)  # array of (lat, lon)
+
+        # Get style attrs from sheet and use defaults if empty
+        color = row.get('color') if pd.notna(row.get('color')) else 'black'
+        weight = float(row.get('weight')) if pd.notna(row.get('weight')) else 3
+        opacity = float(row.get('opacity')) if pd.notna(row.get('opacity')) else 0.9
+        popup_text = str(row.get('name')) if pd.notna(row.get('name')) else None
+
+        # Create line
+        polyline = folium.PolyLine(
+            locations=coords,
+            color=color,
+            weight=weight,
+            opacity=opacity)
+        
+        # Fun features
+        if popup_text:
+            polyline.add_child(folium.Popup(popup_text))
+            polyline.add_child(folium.Tooltip(popup_text))
+
+        polyline.add_to(map_obj)
+
+
 def create_map_from_excel(excel_file, output_file='map.html',
                           center_lat=None, center_lon=None, zoom_start=10):
     """
@@ -167,6 +200,7 @@ def create_map_from_excel(excel_file, output_file='map.html',
     df_polygons = excel_data.get('polygons')
     df_heatmap = excel_data.get('heatmap')
     df_circles = excel_data.get('circles')
+    df_lines = excel_data.get('lines')
 
     # Calculate map center if not provided
     if center_lat is None or center_lon is None:
@@ -209,6 +243,9 @@ def create_map_from_excel(excel_file, output_file='map.html',
 
     print("Adding heatmap...")
     add_heatmap(m, df_heatmap)
+
+    print("Adding lines...")
+    add_lines(m, df_lines)
 
     # Add layer control
     folium.LayerControl().add_to(m)
